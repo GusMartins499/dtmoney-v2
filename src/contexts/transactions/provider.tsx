@@ -13,16 +13,41 @@ interface TransactionsProviderProps {
 export function TransactionsProvider({ children }: TransactionsProviderProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([])
 
-  useEffect(() => {
-    ;(async () => {
-      const { data } = await api.get('/transactions')
-      setTransactions(data)
-    })()
-  }, [])
+  const fetchTransactions = async (query?: string) => {
+    const { data } = await api.get('/transactions', {
+      params: {
+        _sort: 'createdAt',
+        _order: 'desc',
+        q: query,
+      },
+    })
+    setTransactions(data)
+  }
+
+  const createTransaction = async (
+    transaction: Omit<Transaction, 'createdAt' | 'id'>,
+  ) => {
+    const { description, category, price, type } = transaction
+
+    const { data: newTransaction } = await api.post('/transactions', {
+      description,
+      category,
+      price,
+      type,
+      createdAt: new Date(),
+    })
+    setTransactions((prevState) => [newTransaction, ...prevState])
+  }
 
   const contextData: TransactionContextProps = {
     transactions,
+    fetchTransactions,
+    createTransaction,
   }
+
+  useEffect(() => {
+    fetchTransactions()
+  }, [])
 
   return (
     <TransactionsContext.Provider value={contextData}>

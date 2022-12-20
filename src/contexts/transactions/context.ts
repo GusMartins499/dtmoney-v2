@@ -11,6 +11,10 @@ export interface Transaction {
 
 export interface TransactionContextProps {
   transactions: Transaction[]
+  fetchTransactions: (query?: string) => Promise<void>
+  createTransaction: (
+    transaction: Omit<Transaction, 'createdAt' | 'id'>,
+  ) => Promise<void>
 }
 
 export const TransactionsContext = createContext({} as TransactionContextProps)
